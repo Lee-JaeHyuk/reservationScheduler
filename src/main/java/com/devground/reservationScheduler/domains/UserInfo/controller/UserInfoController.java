@@ -7,6 +7,7 @@ import com.devground.reservationScheduler.domains.UserInfo.service.UserInfoServi
 import com.devground.reservationScheduler.domains.base.ResultResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,21 +17,20 @@ public class UserInfoController {
     @Autowired
     private UserInfoService userInfoService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    public ResponseEntity<ResultResponse> login(@RequestBody LoginDto loginRequest) {
-        ResultResponse response = new ResultResponse();
-        UserInfo user = userInfoService.authenticate(loginRequest.getLoginId(), loginRequest.getPassword());
-        if (user != null) {
-            response.setResultFlag(true);
-            return ResponseEntity.ok().body(response);
-        } else {
-            response.setResultFlag(false);
-            response.setErrCode("LOGIN_ERR");
-            response.setErrMessage("Login Failed");
-            return ResponseEntity.badRequest().body(response);
-        }
+    public ResultResponse<?> login(@RequestBody LoginDto request) {
+        UserInfo user = userInfoService.findByLoginId(request.getLoginId());
 
+        if (user != null && passwordEncoder.matches(request.getPassword(), user.getUserName())) {
+            // 로그인 성공 처리
+            return new ResultResponse<>(true);
+        } else {
+            // 로그인 실패 처리
+            return new ResultResponse<>(false, "LOGIN_FAILED", "Invalid login credentials.");
+        }
     }
 
 
