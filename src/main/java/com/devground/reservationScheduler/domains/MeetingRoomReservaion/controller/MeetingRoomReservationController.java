@@ -25,6 +25,11 @@ public class MeetingRoomReservationController {
         return meetingRoomReservationService.createReservation(dto);
     }
 
+    @PostMapping("/weeklyCreate")
+    public ResultResponse<?> weeklyCreateReservation(@RequestBody WeeklyReservationCreationDto dto) {
+        return meetingRoomReservationService.createWeeklyReservation(dto);
+    }
+
     @PostMapping("/update")
     public ResultResponse<?> updateReservation(@RequestBody ReservationUpdateDto dto) {
         return meetingRoomReservationService.updateReservation(dto);
@@ -46,6 +51,8 @@ public class MeetingRoomReservationController {
             return ResponseEntity.badRequest().body(new ResultResponse<>(false, "ERROR_CODE", e.getMessage()));
         }
     }
+
+
 
     /*
     @PostMapping("/dailyReservation")

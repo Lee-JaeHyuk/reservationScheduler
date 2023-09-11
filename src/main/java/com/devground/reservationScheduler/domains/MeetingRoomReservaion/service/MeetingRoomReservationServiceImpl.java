@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,7 +32,7 @@ public class MeetingRoomReservationServiceImpl implements MeetingRoomReservation
     @Override
     @Transactional
     public ResultResponse<?> createReservation(ReservationCreationDto dto) {
-        List<MeetingRoomReservation> existingReservations = meetingRoomReservationRepository.findById_CompanyCodeAndId_MeetingRoomCodeAndId_UseDate(dto.getCompanyCode(), dto.getMeetingRoomCode(), dto.getUseDate());
+        List<MeetingRoomReservation> existingReservations = meetingRoomReservationRepository.findById_CompanyCodeAndId_MeetingRoomCodeAndId_UseDateAndStatus(dto.getCompanyCode(), dto.getMeetingRoomCode(), dto.getUseDate(),"L");
 
         for (MeetingRoomReservation reservation : existingReservations) {
             if ((dto.getUseStartTime().compareTo(reservation.getUseEndTime()) < 0 && dto.getUseEndTime().compareTo(reservation.getUseStartTime()) > 0)) {
@@ -52,22 +55,84 @@ public class MeetingRoomReservationServiceImpl implements MeetingRoomReservation
     }
 
     @Override
+    public ResultResponse<?> createWeeklyReservation(WeeklyReservationCreationDto dto) {
+        try {
+            String companyCode = dto.getCompanyCode();
+            String meetingRoomCode = dto.getMeetingRoomCode();
+            Integer userId = dto.getUserId();
+            String useStartTime = dto.getUseStartTime();
+            String useEndTime = dto.getUseEndTime();
+            String reason = dto.getReason();
+
+            // 입력된 월과 요일 정보
+            String month = dto.getMonth().substring(2);
+            String day = dto.getDay();
+
+            // 현재 연도
+            int currentYear = LocalDate.now().getYear();
+
+            // 주어진 월과 요일 정보를 기반으로 주간 예약 생성
+            LocalDate startDate = LocalDate.of(currentYear, Integer.parseInt(month), 1);
+            DayOfWeek desiredDayOfWeek = DayOfWeek.valueOf(day);
+
+            while (startDate.getMonthValue() == Integer.parseInt(month)) {
+                if (startDate.getDayOfWeek() == desiredDayOfWeek) {
+                    String useDate = startDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+                    // 중복 예약 체크
+                    List<MeetingRoomReservation> existingReservations = meetingRoomReservationRepository
+                            .findById_CompanyCodeAndId_MeetingRoomCodeAndId_UseDateAndStatus(
+                                    companyCode, meetingRoomCode, useDate, "L");
+
+                    for (MeetingRoomReservation reservation : existingReservations) {
+                        if ((useStartTime.compareTo(reservation.getUseEndTime()) < 0
+                                && useEndTime.compareTo(reservation.getUseStartTime()) > 0)) {
+                            // 중복 예약이 있는 경우 실패
+                            return new ResultResponse<>(false, "ERR001", "해당 시간에 예약이 존재합니다.");
+                        }
+                    }
+
+
+                    // 중복 예약이 없을 때 주간 예약 생성
+                    MeetingRoomReservation newReservation = new MeetingRoomReservation();
+                    MeetingRoomReservationId id = new MeetingRoomReservationId(null, companyCode, meetingRoomCode, userId, useDate);
+
+                    newReservation.setId(id);
+                    newReservation.setUseStartTime(useStartTime);
+                    newReservation.setUseEndTime(useEndTime);
+                    newReservation.setReason(reason);
+                    newReservation.setStatus("L");
+
+
+                    meetingRoomReservationRepository.save(newReservation);
+                }
+                startDate = startDate.plusDays(1);
+            }
+            return new ResultResponse<>(true);
+        } catch (Exception e) {
+            return new ResultResponse<>(false, "ERR", "주간 예약 생성 중 오류가 발생했습니다." + e.getMessage());
+        }
+    }
+
+
+
+    @Override
     @Transactional
     public ResultResponse<?> updateReservation(ReservationUpdateDto dto) {
         MeetingRoomReservationId id = new MeetingRoomReservationId(dto.getReservationId(), dto.getCompanyCode(), dto.getMeetingRoomCode(), dto.getUserId(), dto.getUseDate());
 
-        MeetingRoomReservation existingReservation = meetingRoomReservationRepository.findById(id);
+        MeetingRoomReservation existingReservation = meetingRoomReservationRepository.findByIdAndStatus(id,"L");
 
         if (existingReservation == null) {
             return new ResultResponse<>(false, "ERR002", "해당 예약이 존재하지 않습니다.");
         }
 
-        List<MeetingRoomReservation> reservationsForTheDay = meetingRoomReservationRepository.findAllById_CompanyCodeAndId_MeetingRoomCodeAndId_UseDate(
-                dto.getCompanyCode(), dto.getMeetingRoomCode(), dto.getUseDate());
+        List<MeetingRoomReservation> existingReservations = meetingRoomReservationRepository.findById_CompanyCodeAndId_MeetingRoomCodeAndId_UseDateAndStatus(
+                dto.getCompanyCode(), dto.getMeetingRoomCode(), dto.getUseDate(),"L");
 
 
 
-        for (MeetingRoomReservation reservation : reservationsForTheDay) {
+        for (MeetingRoomReservation reservation : existingReservations) {
             // 현재 예약(reservation)과 변경하려는 예약(dto)이 같은 예약이 아닐 경우에만 시간 겹침 체크 수행
             if (!reservation.getId().equals(id)) {
                 if ((dto.getUseStartTime().compareTo(reservation.getUseEndTime()) < 0 && dto.getUseEndTime().compareTo(reservation.getUseStartTime()) > 0)) {
@@ -122,6 +187,8 @@ public class MeetingRoomReservationServiceImpl implements MeetingRoomReservation
         dto.setUserName(userName);
         return dto;
     }
+
+
 
 
     /*

@@ -12,7 +12,10 @@ public interface MeetingRoomReservationRepository extends JpaRepository<MeetingR
 
     List<MeetingRoomReservation> findById_CompanyCodeAndId_MeetingRoomCodeAndId_UseDate(String companyCode, String meetingRoomCode, String useDate);
 
+    List<MeetingRoomReservation> findById_CompanyCodeAndId_MeetingRoomCodeAndId_UseDateAndStatus(String companyCode, String meetingRoomCode, String useDate, String status);
     MeetingRoomReservation findById(MeetingRoomReservationId id);
+
+    MeetingRoomReservation findByIdAndStatus(MeetingRoomReservationId id, String status);
 
     List<MeetingRoomReservation> findAllById_CompanyCodeAndId_MeetingRoomCodeAndId_UseDate(
             String companyCode,

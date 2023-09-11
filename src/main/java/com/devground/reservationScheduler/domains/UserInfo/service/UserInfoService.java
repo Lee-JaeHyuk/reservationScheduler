@@ -1,8 +1,10 @@
 package com.devground.reservationScheduler.domains.UserInfo.service;
 
+import com.devground.reservationScheduler.domains.UserInfo.dto.LoginDto;
 import com.devground.reservationScheduler.domains.UserInfo.entity.UserInfo;
+import com.devground.reservationScheduler.domains.base.ResultResponse;
 
 public interface UserInfoService {
 
-    UserInfo findByLoginId(String loginId);
+    ResultResponse<?> authenticateUser(LoginDto loginDto);
 }

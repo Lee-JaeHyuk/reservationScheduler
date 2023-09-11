@@ -9,10 +9,11 @@ import java.util.List;
 public interface MeetingRoomReservationService {
 
     ResultResponse<?> createReservation(ReservationCreationDto dto);
+
+    ResultResponse<?> createWeeklyReservation(WeeklyReservationCreationDto dto);
+
     ResultResponse<?> updateReservation(ReservationUpdateDto dto);
-
     ResultResponse<?> deleteReservation(ReservationDeleteDto dto);
-
 
     List<ReservationResult> dailyReservaionInfo(String companyCode, String useDate, String status);
 
