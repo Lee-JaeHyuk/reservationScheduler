@@ -1,7 +1,9 @@
 package com.devground.reservationScheduler.domains.UserInfo.service;
 
 
+import com.devground.reservationScheduler.domains.CompanyInfo.repository.CompanyInfoRepository;
 import com.devground.reservationScheduler.domains.UserInfo.dto.LoginDto;
+import com.devground.reservationScheduler.domains.UserInfo.dto.LoginResult;
 import com.devground.reservationScheduler.domains.UserInfo.entity.UserInfo;
 import com.devground.reservationScheduler.domains.UserInfo.repository.UserInfoRepository;
 import com.devground.reservationScheduler.domains.base.ResultResponse;
@@ -18,8 +20,17 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Autowired
     private UserInfoRepository userInfoRepository;
 
+    @Autowired
+    private CompanyInfoRepository companyInfoRepository;
+
+
+    @Autowired
+    public UserInfoServiceImpl(UserInfoRepository userInfoRepository) {
+        this.userInfoRepository = userInfoRepository;
+    }
+
     @Override
-    public ResultResponse<?> authenticateUser(LoginDto loginDto) {
+    public ResultResponse<LoginResult> authenticateUser(LoginDto loginDto) {
         String loginId = loginDto.getLoginId();
         String password = loginDto.getPassword();
 
@@ -36,7 +47,12 @@ public class UserInfoServiceImpl implements UserInfoService {
         }
 
         // 로그인 성공
-        return new ResultResponse<>(true, "로그인 성공", "예약에 성공했습니다");
+        LoginResult loginResult = new LoginResult();
+        loginResult.setUserId(user.getUserId());
+        loginResult.setCompanyCode(user.getCompanyCode());
+        loginResult.setCompanyName(companyInfoRepository.findByCompanyCode(user.getCompanyCode()).getCompanyName());
+
+        return new ResultResponse<>(true, "success","로그인 성공" , loginResult);
     }
 
 
