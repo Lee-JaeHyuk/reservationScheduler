@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 public class LoginResult {
 
     Integer userId;
+
+    String userName;
     String companyCode;
     String companyName;
 

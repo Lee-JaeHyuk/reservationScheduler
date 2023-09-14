@@ -51,6 +51,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         loginResult.setUserId(user.getUserId());
         loginResult.setCompanyCode(user.getCompanyCode());
         loginResult.setCompanyName(companyInfoRepository.findByCompanyCode(user.getCompanyCode()).getCompanyName());
+        loginResult.setUserName(user.getUserName());
 
         return new ResultResponse<>(true, "success","로그인 성공" , loginResult);
     }

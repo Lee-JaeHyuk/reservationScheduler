@@ -134,7 +134,7 @@ public class MeetingRoomReservationServiceImpl implements MeetingRoomReservation
 
         for (MeetingRoomReservation reservation : existingReservations) {
             // 현재 예약(reservation)과 변경하려는 예약(dto)이 같은 예약이 아닐 경우에만 시간 겹침 체크 수행
-            if (!reservation.getId().equals(id)) {
+            if (!reservation.getId().getReservationId().equals(id.getReservationId())) {
                 if ((dto.getUseStartTime().compareTo(reservation.getUseEndTime()) < 0 && dto.getUseEndTime().compareTo(reservation.getUseStartTime()) > 0)) {
                     return new ResultResponse<>(false, "ERR001", "해당 시간에 예약이 존재합니다.");
                 }
