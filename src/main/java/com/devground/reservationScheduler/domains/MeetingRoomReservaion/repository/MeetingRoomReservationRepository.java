@@ -23,4 +23,10 @@ public interface MeetingRoomReservationRepository extends JpaRepository<MeetingR
             String useDate
     );
 
+    List<MeetingRoomReservation> findAllById_CompanyCodeAndId_UserIdAndStatus(
+            String companyCode,
+            Integer userId,
+            String status
+    );
+
 }

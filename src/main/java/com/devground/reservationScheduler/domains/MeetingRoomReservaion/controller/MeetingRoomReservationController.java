@@ -52,6 +52,15 @@ public class MeetingRoomReservationController {
         }
     }
 
+    @PostMapping("/myReservations")
+    public ResponseEntity<ResultResponse<List<ReservationResult>>> getMyReservations(@RequestBody Map<String, String> request) {
+        try {
+            List<ReservationResult> rooms = meetingRoomReservationService.myReservaions(request.get("companyCode"),request.get("userId"),"L");
+            return ResponseEntity.ok(new ResultResponse<>(true, null, null, rooms));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ResultResponse<>(false, "ERROR_CODE", e.getMessage()));
+        }
+    }
 
 
     /*

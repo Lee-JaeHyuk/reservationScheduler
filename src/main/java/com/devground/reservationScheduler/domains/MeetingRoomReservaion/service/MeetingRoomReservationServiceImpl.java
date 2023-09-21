@@ -39,6 +39,11 @@ public class MeetingRoomReservationServiceImpl implements MeetingRoomReservation
                 return new ResultResponse<>(false, "ERR001", "해당 시간에 예약이 존재합니다.");
             }
         }
+        if (dto.getUseStartTime().compareTo(dto.getUseEndTime()) > 0) {
+            return new ResultResponse<>(false, "ERR003", "시작 시간은 마침 시간보다 빨라야 합니다.");
+        }
+
+
 
         MeetingRoomReservation newReservation = new MeetingRoomReservation();
         MeetingRoomReservationId id = new MeetingRoomReservationId(null, dto.getCompanyCode(), dto.getMeetingRoomCode(), dto.getUserId(), dto.getUseDate());
@@ -88,7 +93,7 @@ public class MeetingRoomReservationServiceImpl implements MeetingRoomReservation
                         if ((useStartTime.compareTo(reservation.getUseEndTime()) < 0
                                 && useEndTime.compareTo(reservation.getUseStartTime()) > 0)) {
                             // 중복 예약이 있는 경우 실패
-                            return new ResultResponse<>(false, "ERR001", "해당 시간에 예약이 존재합니다.");
+                            return new ResultResponse<>(false, "ERR001", reservation.getId().getUseDate() + " 에 예약이 존재합니다." );
                         }
                     }
 
@@ -125,6 +130,10 @@ public class MeetingRoomReservationServiceImpl implements MeetingRoomReservation
 
         if (existingReservation == null) {
             return new ResultResponse<>(false, "ERR002", "해당 예약이 존재하지 않습니다.");
+        }
+
+        if (dto.getUseStartTime().compareTo(dto.getUseEndTime()) > 0) {
+            return new ResultResponse<>(false, "ERR003", "시작 시간은 마침 시간보다 빨라야 합니다.");
         }
 
         List<MeetingRoomReservation> existingReservations = meetingRoomReservationRepository.findById_CompanyCodeAndId_MeetingRoomCodeAndId_UseDateAndStatus(
@@ -172,6 +181,15 @@ public class MeetingRoomReservationServiceImpl implements MeetingRoomReservation
                 .map(this::convertToReservation)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<ReservationResult> myReservaions(String companyCode, String userId, String status) {
+        List<MeetingRoomReservation> myReservations = meetingRoomReservationRepository.findAllById_CompanyCodeAndId_UserIdAndStatus(companyCode, Integer.valueOf(userId),status);
+        return myReservations.stream()
+                .map(this::convertToReservation)
+                .collect(Collectors.toList());
+    }
+
     private ReservationResult convertToReservation(MeetingRoomReservation reservation) {
         ReservationResult dto = new ReservationResult();
         String userName = userInfoRepository.findByUserId(reservation.getId().getUserId()).getUserName();

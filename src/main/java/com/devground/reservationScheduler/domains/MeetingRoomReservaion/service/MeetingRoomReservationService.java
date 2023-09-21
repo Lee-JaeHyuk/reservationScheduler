@@ -17,6 +17,8 @@ public interface MeetingRoomReservationService {
 
     List<ReservationResult> dailyReservaionInfo(String companyCode, String useDate, String status);
 
+    List<ReservationResult> myReservaions(String companyCode, String userId, String status);
+
     //ResultResponse<?> dailyReservaionInfo(ReservationDailyInfoDto dto);
 
 }
